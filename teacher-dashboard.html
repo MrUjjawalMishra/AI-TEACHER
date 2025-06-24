@@ -1,0 +1,69 @@
+<!-- teacher-dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Dashboard - AI Teacher</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .logout { float: right; cursor: pointer; color: red; }
+  </style>
+</head>
+<body>
+  <h2>👩‍🏫 Welcome, Teacher!</h2>
+  <button class="logout" onclick="logout()">Logout</button>
+
+  <hr>
+  <h3>Upload Lecture</h3>
+  <input type="file" id="lectureUpload" accept="video/*">
+  <button onclick="uploadLecture()">Upload</button>
+
+  <div id="uploadStatus"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+    import { getStorage, ref, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MSG_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Auth check
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+
+    window.logout = function () {
+      signOut(auth).then(() => window.location.href = "login.html");
+    };
+
+    window.uploadLecture = function () {
+      const file = document.getElementById("lectureUpload").files[0];
+      if (!file) return alert("Please select a video");
+
+      const storageRef = ref(storage, `lectures/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed', 
+        () => {}, 
+        (error) => alert("Upload failed: " + error.message),
+        () => {
+          document.getElementById("uploadStatus").innerText = "✅ Upload successful!";
+        }
+      );
+    };
+  </script>
+</body>
+</html>
