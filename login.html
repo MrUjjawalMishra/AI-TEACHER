@@ -18,35 +18,10 @@
     </form>
   </div>
 
-  <script>
-    // Get role from URL
-    const params = new URLSearchParams(window.location.search);
-    const role = params.get("role");
-    document.getElementById("role").value = role;
-
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      // TODO: Firebase Auth Code Here
-
-      if (role === "teacher") {
-        window.location.href = "teacher-dashboard.html";
-      } else {
-        window.location.href = "student-dashboard.html";
-      }
-    });
-  </script>
   <script type="module">
-  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyAElERkuWUlnmJbjasF6GKeIPA7G7Uut-A",
     authDomain: "ujjawal-ai-teacher.firebaseapp.com",
@@ -57,9 +32,46 @@
     measurementId: "G-T5PKYXMR8X"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+
+  // Get role from URL
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get("role");
+  document.getElementById("role").value = role;
+
+  document.getElementById("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    // ✅ Try login first
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // ✅ Success
+        if (role === "teacher") {
+          window.location.href = "teacher-dashboard.html";
+        } else {
+          window.location.href = "student-dashboard.html";
+        }
+      })
+      .catch((error) => {
+        // ✅ If login fails, try signup (first-time user)
+        createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            if (role === "teacher") {
+              window.location.href = "teacher-dashboard.html";
+            } else {
+              window.location.href = "student-dashboard.html";
+            }
+          })
+          .catch((err) => {
+            document.getElementById("message").textContent =
+              "Login/Signup failed: " + err.message;
+          });
+      });
+  });
 </script>
+
 </body>
 </html>
