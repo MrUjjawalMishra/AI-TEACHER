@@ -18,31 +18,69 @@
   <p>Notes and AI doubt resolver coming in next step.</p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+  import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MSG_ID",
-      appId: "YOUR_APP_ID"
-    };
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MSG_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const storage = getStorage(app);
 
-    // Auth check
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-      }
+  // ✅ Auth check
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+    }
+  });
+
+  // ✅ Logout
+  window.logout = function () {
+    signOut(auth).then(() => window.location.href = "login.html");
+  };
+
+  // ✅ Lecture video list fetch
+  const lecturesRef = ref(storage, 'lectures');
+  listAll(lecturesRef)
+    .then((res) => {
+      res.items.forEach((itemRef) => {
+        getDownloadURL(itemRef).then((url) => {
+          const videoBox = document.createElement('div');
+          videoBox.innerHTML = `
+            <video width="300" controls>
+              <source src="${url}" type="video/mp4">
+            </video>
+            <br>
+            <button onclick="showNotes()">📄 View Notes</button>
+            <button onclick="openChat()">💬 Ask Doubt</button>
+            <hr/>
+          `;
+          document.body.appendChild(videoBox);
+        });
+      });
+    })
+    .catch((error) => {
+      console.error('Error fetching lectures:', error);
     });
 
-    window.logout = function () {
-      signOut(auth).then(() => window.location.href = "login.html");
-    };
-  </script>
+  // ✅ 4.2: Dummy Notes Function
+  window.showNotes = function () {
+    alert("📝 Sample Notes:\n1. Introduction to topic\n2. Key points\n3. Summary");
+  };
+
+  // ✅ 4.3: Dummy Chat Function
+  window.openChat = function () {
+    alert("🤖 Chatbot coming soon!\nAI doubt solver will be added here.");
+  };
+</script>
+
 </body>
 </html>
